@@ -1,21 +1,24 @@
-// controllers/DrinkController.js
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 const getAllDrinks = async (req, res) => {
   try {
-    const drinks = await prisma.drinks.findMany();
+    const { category } = req.headers; 
+    const where = category ? { category } : undefined; 
+    const drinks = await prisma.drinks.findMany({ where, include: { categories:true}});
     res.json(drinks);
   } catch (error) {
+    console.error('Error fetching drinks:', error); // Log the error for debugging
     res.status(500).json({ error: 'Failed to fetch drinks' });
   }
 };
+
 
 const createDrink = async (req, res) => {
   const { name, description, price } = req.body;
   try {
     const newDrink = await prisma.drinks.create({
-      data: { name, description, price },
+      data: { name, description, price,category },
     });
     res.status(201).json(newDrink);
   } catch (error) {
@@ -24,12 +27,14 @@ const createDrink = async (req, res) => {
   }
 };
 
-// New: Get a single drink by ID (read-only)
-const getDrinkById = async (req, res) => {
+const getDrink = async (req, res) => {
   const { id } = req.params;
   try {
-    const drink = await prisma.drink.findUnique({
+    const drink = await prisma.drinks.findUnique({
       where: { id: parseInt(id) },
+      include:{
+        categories
+      }
     });
     if (drink) {
       res.json(drink);
@@ -41,20 +46,18 @@ const getDrinkById = async (req, res) => {
   }
 };
 
-// New: Update an existing drink by ID
 const updateDrink = async (req, res) => {
   const { id } = req.params;
   const { name, description, price } = req.body;
   try {
     const updatedDrink = await prisma.drinks.update({
       where: { id: parseInt(id) },
-      data: { name, description, price },
+      data: { name, description, price,category },
     });
     res.json(updatedDrink);
   } catch (error) {
     console.log(error);
     if (error.code === 'P2025') {
-      // Prisma error code for "Record to update not found"
       res.status(404).json({ error: 'Drink not found' });
     } else {
       res.status(500).json({ error: 'Failed to update drink' });
@@ -62,14 +65,13 @@ const updateDrink = async (req, res) => {
   }
 };
 
-// New: Delete a drink by ID
 const deleteDrink = async (req, res) => {
   const { id } = req.params;
   try {
     await prisma.drinks.delete({
       where: { id: parseInt(id) },
     });
-    res.status(204).end();  // No content response
+    res.status(204).end();  
   } catch (error) {
     console.log(error);
     if (error.code === 'P2025') {
@@ -83,7 +85,7 @@ const deleteDrink = async (req, res) => {
 module.exports = {
   getAllDrinks,
   createDrink,
-  getDrinkById,
+  getDrink,
   updateDrink,
   deleteDrink,
 };

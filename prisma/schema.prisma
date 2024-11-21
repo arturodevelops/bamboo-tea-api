@@ -8,10 +8,20 @@ datasource db {
 }
 
 model drinks {
-  id          Int       @id @default(autoincrement())
-  name        String    @db.VarChar(255)
-  description String?   @db.Text
-  price       Decimal   @db.Decimal(10, 2)
-  createdAt   DateTime? @default(now()) @db.Timestamp(0)
-  updatedAt   DateTime? @default(now()) @db.Timestamp(0)
+  id          Int        @id @default(autoincrement())
+  name        String     @db.VarChar(255)
+  description String?    @db.Text
+  price       Decimal    @db.Decimal(10, 2)
+  createdAt   DateTime?  @default(now()) @db.Timestamp(0)
+  updatedAt   DateTime?  @default(now()) @db.Timestamp(0)
+  category    Int
+  categories  categories @relation(fields: [category], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_category")
+
+  @@index([category], map: "fk_category")
+}
+
+model categories {
+  id     Int      @id @default(autoincrement())
+  name   String   @db.VarChar(255)
+  drinks drinks[]
 }

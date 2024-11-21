@@ -2,7 +2,7 @@ const express = require('express');
 const {
   getAllDrinks,
   createDrink,
-  getDrinkById,
+  getDrink,
   updateDrink,
   deleteDrink,
 } = require('../controllers/DrinkController');
@@ -10,7 +10,7 @@ const router = express.Router();
 
 router.get('/drinks', getAllDrinks);
 router.post('/drinks', createDrink);
-router.get('/drinks/:id', getDrinkById);
+router.get('/drinks/:id', getDrink);
 router.put('/drinks/:id', updateDrink);
 router.delete('/drinks/:id', deleteDrink);
 
