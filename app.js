@@ -1,12 +1,17 @@
-// app.js
 const express = require('express');
-const setupRoutes = require('./routes');
+const routes = require('./routes');
+const cors = require('cors')
 const app = express();
 
-app.use(express.json());
 
-// Initialize routes
-setupRoutes(app);
+app.use(express.json());
+app.use(cors({
+  origin:'http://localhost:3000/',
+  methods:'GET,POST,DELETE,UPDATE',
+  credentials:true
+}))
+
+routes(app);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

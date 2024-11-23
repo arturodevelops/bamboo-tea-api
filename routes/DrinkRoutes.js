@@ -6,12 +6,13 @@ const {
   updateDrink,
   deleteDrink,
 } = require('../controllers/DrinkController');
+const upload = require('../functions/multer');
 const router = express.Router();
 
-router.get('/drinks', getAllDrinks);
-router.post('/drinks', createDrink);
-router.get('/drinks/:id', getDrink);
-router.put('/drinks/:id', updateDrink);
-router.delete('/drinks/:id', deleteDrink);
+router.get('/', getAllDrinks);
+router.post('/', upload.single('image'),createDrink);
+router.get('/:id', getDrink);
+router.put('/:id', updateDrink);
+router.delete('/:id', deleteDrink);
 
-module.exports = router;
+module.exports.drinkRoutes = {router};

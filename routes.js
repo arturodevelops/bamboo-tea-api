@@ -1,11 +1,16 @@
-// routes.js
-const drinkRoutes = require('./routes/DrinkRoutes');
-const categoryRoutes = require('./routes/CategoryRoutes')
+const express = require('express');
+const { drinkRoutes } = require('./routes/DrinkRoutes');
+const { categoryRoutes } = require('./routes/CategoryRoutes');
+const { OrderRoutes } = require('./routes/OrderRoutes');
 
+const routes = (app) => {
+  const router = express.Router();
 
-const setupRoutes = (app) => {
-  app.use('/api', drinkRoutes);
-  app.use('/api', categoryRoutes)
+  router.use('/drinks', drinkRoutes.router);
+  router.use('/categories', categoryRoutes.router);
+  router.use('/orders', OrderRoutes.router);
+
+  app.use('/api', router);
 };
 
-module.exports = setupRoutes;
+module.exports = routes;

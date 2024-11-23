@@ -7,21 +7,53 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model drinks {
-  id          Int        @id @default(autoincrement())
-  name        String     @db.VarChar(255)
-  description String?    @db.Text
-  price       Decimal    @db.Decimal(10, 2)
-  createdAt   DateTime?  @default(now()) @db.Timestamp(0)
-  updatedAt   DateTime?  @default(now()) @db.Timestamp(0)
-  category    Int
-  categories  categories @relation(fields: [category], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_category")
-
-  @@index([category], map: "fk_category")
-}
-
 model categories {
   id     Int      @id @default(autoincrement())
   name   String   @db.VarChar(255)
   drinks drinks[]
+}
+
+model drinks {
+  id              Int        @id @default(autoincrement())
+  name            String     @db.VarChar(255)
+  description     String?    @db.Text
+  price           Decimal    @db.Decimal(10, 2)
+  createdAt       DateTime?  @default(now()) @db.Timestamp(0)
+  updatedAt       DateTime?  @default(now()) @db.Timestamp(0)
+  category        Int
+  stripeProductId String
+  stripePriceId   String
+  imageUrl        String?    @db.VarChar(255)
+  categories      categories @relation(fields: [category], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_category")
+
+  @@index([category], map: "fk_category")
+}
+
+model orders {
+  id                  Int    @id @default(autoincrement())
+  name                String @db.VarChar(255)
+  checkout_session_id String
+}
+
+model orders_drinks {
+  id       Int @id @default(autoincrement())
+  drink_id Int
+  order_id Int
+  amount   Int
+}
+
+model users {
+  id         Int      @id @default(autoincrement())
+  username   String
+  password   String
+  profile_id Int
+  profiles   profiles @relation(fields: [profile_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_profile")
+
+  @@index([profile_id], map: "fk_profile")
+}
+
+model profiles {
+  id    Int     @id @default(autoincrement())
+  name  String
+  users users[]
 }
