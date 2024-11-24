@@ -3,7 +3,7 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 const registerUser = async (req, res) => {
-  const { username, password } = req.body;
+  const { username, password,profile_id } = req.body;
 
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -11,7 +11,7 @@ const registerUser = async (req, res) => {
     const newUser = await prisma.users.create({
       data: {
         username,
-        email,
+        profile_id,
         password: hashedPassword, // Save the hashed password
       },
     });
@@ -23,12 +23,12 @@ const registerUser = async (req, res) => {
 };
 
 const loginUser = async (req, res) => {
-  const { email, password } = req.body;
+  const { username, password } = req.body;
 
   try {
     const user = await prisma.users.findUnique({
       where: {
-        email,
+        username,
       },
     });
 
@@ -36,7 +36,6 @@ const loginUser = async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    // Compare the provided password with the hashed password in the database
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {

@@ -10,3 +10,5 @@ router.post('/register-user', UserController.registerUser)
 router.put('/reset-password',UserController.resetPassword)
 router.get('/:id',UserController.getUserData)
 
+module.exports.UserRoutes = {router}
+

@@ -14,9 +14,7 @@ const getAllDrinks = async (req, res) => {
     const drinks = await prisma.drinks.findMany({
       where,
       include: {
-        categories: {
-          where: { deleted: false }  // Ensure categories are not deleted
-        }
+        categories:true
       }
     });
 
