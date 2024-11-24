@@ -7,6 +7,15 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum OrderStatus {
+  pending
+  confirmed
+  preparing
+  ready
+  picked_up
+  cancelled
+}
+
 model categories {
   id     Int      @id @default(autoincrement())
   name   String   @db.VarChar(255)
@@ -32,6 +41,9 @@ model drinks {
 model orders {
   id                  Int    @id @default(autoincrement())
   name                String @db.VarChar(255)
+  status OrderStatus    @default(pending)
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
   checkout_session_id String
 }
 

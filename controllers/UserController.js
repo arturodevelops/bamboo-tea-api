@@ -2,7 +2,7 @@ const bcrypt = require('bcryptjs');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
-registerUser = async (req, res) => {
+const registerUser = async (req, res) => {
   const { username, password } = req.body;
 
   try {
@@ -22,7 +22,7 @@ registerUser = async (req, res) => {
   }
 };
 
-loginUser = async (req, res) => {
+const loginUser = async (req, res) => {
   const { email, password } = req.body;
 
   try {
@@ -50,12 +50,56 @@ loginUser = async (req, res) => {
   }
 };
 
-getUserData = async (req, res) => {
+const resetPassword = async (req,res) => {
+  const {userId, newPassword} = req.body;
+
+  if (!userId || typeof userId !== 'string') {
+    return res.status(400).json({error:'Invalid user ID provided. Please provide a valid user ID'});
+  }
+
+  if (!newPassword || typeof newPassword !== 'string') {
+    return res.status(400).json({error:'Invalid password provided.'});
+  }
+
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+   
+  try {
+    const user = await prisma.users.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        password: hashedPassword,
+      },
+      select: {
+        username: true,
+        id: true,
+      },
+    });
+
+    return res.status(200).json({message:`The password for ${user.username} has been succesfully updated`,user})
+  
+  } catch (error) {
+    if (error.code === 'P2025') { // Prisma's code for "Record not found"
+      return res.status(404).json({message:"User not found with the provided ID"})
+    } else {
+      return res.status(500).json({error})
+    }
+  }
+  
+}
+
+const getUserData = async (req, res) => {
   const userId = req.params.userId;
 
   try {
     const user = await prisma.users.findUnique({
       where: { id: parseInt(userId) },
+      select:{
+        id:true,
+        username:true,
+        profile_id:true
+      }
     });
 
     if (!user) {
@@ -67,3 +111,5 @@ getUserData = async (req, res) => {
     res.status(500).json({ error: 'An error occurred while fetching user data' });
   }
 };
+
+module.exports.UserController = {registerUser,loginUser,resetPassword,getUserData}
