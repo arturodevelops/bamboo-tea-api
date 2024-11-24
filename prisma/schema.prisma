@@ -34,27 +34,32 @@ model drinks {
   stripeProductId String
   stripePriceId   String
   imageUrl        String?    @db.VarChar(255)
-  deleted   Boolean  @default(false)  // added soft delete column
+  deleted         Boolean    @default(false)  // added soft delete column
   categories      categories @relation(fields: [category], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_category")
+  orders_drinks   orders_drinks[] // Relation with orders_drinks
 
   @@index([category], map: "fk_category")
 }
 
 model orders {
-  id                  Int    @id @default(autoincrement())
-  name                String @db.VarChar(255)
-  status OrderStatus    @default(pending)
+  id                  Int              @id @default(autoincrement())
+  name                String           @db.VarChar(255)
+  status              OrderStatus      @default(pending)
   createdAt           DateTime         @default(now())
   updatedAt           DateTime         @updatedAt
   checkout_session_id String
+  orders_drinks       orders_drinks[] // Relation with orders_drinks
 }
 
 model orders_drinks {
-  id       Int @id @default(autoincrement())
+  id       Int     @id @default(autoincrement())
   drink_id Int
   order_id Int
   amount   Int
+  drink    drinks  @relation(fields: [drink_id], references: [id], onDelete: Cascade, map: "fk_drink")
+  order    orders  @relation(fields: [order_id], references: [id], onDelete: Cascade, map: "fk_order")
 }
+
 
 model users {
   id         Int      @id @default(autoincrement())

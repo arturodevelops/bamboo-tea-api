@@ -77,21 +77,44 @@ const confirmOrder = async (req, res) => {
 
 const getAllOrders = async (req, res) => {
   try {
-    const orders = await prisma.orders.findMany({
+    // Fetch the raw orders data
+    const rawOrders = await prisma.orders.findMany({
       include: {
         orders_drinks: {
           include: {
-            drink: true,
+            drink: true, // Include drink data to extract relevant fields
           },
         },
       },
     });
-    res.send(orders);
+
+    // Transform the data to exclude orders_drinks and directly include drinks
+    const transformedOrders = rawOrders.map(order => ({
+      id: order.id,
+      name: order.name,
+      status: order.status,
+      createdAt: order.createdAt,
+      updatedAt: order.updatedAt,
+      checkout_session_id: order.checkout_session_id,
+      drinks: order.orders_drinks.map(od => ({
+        id: od.drink.id,
+        name: od.drink.name,
+        description: od.drink.description,
+        price: od.drink.price,
+        amount: od.amount,
+        imageUrl: od.drink.imageUrl,
+      })),
+    }));
+
+    // Send the transformed data as the response
+    res.status(200).json(transformedOrders);
   } catch (error) {
-    console.error("Error fetching orders:", error);
-    res.status(500).send({ error: "Failed to fetch orders" });
+    console.error("Error fetching orders:", error.message);
+    res.status(500).json({ error: "Failed to fetch orders. Please try again later." });
   }
 };
+
+
 
 module.exports.OrderController = {
   createCheckoutSession,
