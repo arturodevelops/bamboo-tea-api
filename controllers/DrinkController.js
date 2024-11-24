@@ -6,15 +6,27 @@ const deleteImageFromS3 = require('../functions/deleteImageFromS3');
 const getAllDrinks = async (req, res) => {
   try {
     const category = parseInt(req.query.category); 
-    const where = category ? { category } : undefined; 
-    console.log(where);
-    const drinks = await prisma.drinks.findMany({ where, include: { categories:true}});
+    const where = category 
+      ? { category, deleted: false }  // Filter by category and ensure drink is not deleted
+      : { deleted: false };  // If no category is provided, just filter by deleted status
+
+    // Fetch drinks that are not deleted, and include categories
+    const drinks = await prisma.drinks.findMany({
+      where,
+      include: {
+        categories: {
+          where: { deleted: false }  // Ensure categories are not deleted
+        }
+      }
+    });
+
     res.json(drinks);
   } catch (error) {
     console.error('Error fetching drinks:', error); // Log the error for debugging
     res.status(500).json({ error: 'Failed to fetch drinks' });
   }
 };
+
 
 const createDrink = async (req, res) => {
   let { name, description, price, category } = req.body;
@@ -60,13 +72,17 @@ const createDrink = async (req, res) => {
 const getDrink = async (req, res) => {
   const { id } = req.params;
   try {
+    // Fetch the drink with the given id, ensuring it is not deleted
     const drink = await prisma.drinks.findUnique({
       where: { id: parseInt(id) },
-      include:{
-        categories:true
+      include: {
+        categories: {
+          where: { deleted: false }  // Ensure associated categories are not deleted
+        }
       }
     });
-    if (drink) {
+
+    if (drink && !drink.deleted) {  // Check if the drink is not deleted
       res.json(drink);
     } else {
       res.status(404).json({ error: 'Drink not found' });
@@ -77,12 +93,11 @@ const getDrink = async (req, res) => {
   }
 };
 
+
 const updateDrink = async (req, res) => {
   const id = parseInt(req.params.id);
   const { name, description, price, category } = req.body;
   const image = req.file;
-
-  console.log(image);
      
    try {
      // Step 1: Find the existing drink in the database by its unique id
@@ -118,10 +133,6 @@ const updateDrink = async (req, res) => {
       }
     }
     
-
-    console.log(image.location);
-    
-
     const updatedDrink = await prisma.drinks.update({
       where: { id: parseInt(id) },
       data: { name, description, price, category, imageUrl: image ? image.location : drink.imageUrl }
@@ -152,7 +163,7 @@ const deleteDrink = async (req, res) => {
     await stripe.products.update(drink.stripeProductId, { active: false });
 
     // Delete the drink from the database
-    await prisma.drinks.delete({ where: { id: parseInt(id) } });
+    await prisma.drinks.update({ where: { id: parseInt(id) }, data:{deleted:true}});
 
     res.status(204).end(); // No content response
   } catch (error) {

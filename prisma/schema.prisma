@@ -19,6 +19,7 @@ enum OrderStatus {
 model categories {
   id     Int      @id @default(autoincrement())
   name   String   @db.VarChar(255)
+  deleted   Boolean  @default(false)  // added soft delete column
   drinks drinks[]
 }
 
@@ -33,6 +34,7 @@ model drinks {
   stripeProductId String
   stripePriceId   String
   imageUrl        String?    @db.VarChar(255)
+  deleted   Boolean  @default(false)  // added soft delete column
   categories      categories @relation(fields: [category], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_category")
 
   @@index([category], map: "fk_category")

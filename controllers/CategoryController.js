@@ -3,7 +3,11 @@ const prisma = new PrismaClient();
 
 const getAllCategories = async (req, res) => {
   try {
-    const categories = await prisma.categories.findMany();
+    const categories = await prisma.categories.findMany({
+      where:{
+        deleted:false
+      }
+    });
     res.json(categories);
   } catch (error) {
     console.error('Error fetching categories:', error); // Log the error for debugging
