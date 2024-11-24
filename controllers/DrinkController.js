@@ -4,8 +4,9 @@ const stripe = require("../models/Stripe")
 
 const getAllDrinks = async (req, res) => {
   try {
-    const { category } = req.headers; 
+    const category = parseInt(req.query.category); 
     const where = category ? { category } : undefined; 
+    console.log(where);
     const drinks = await prisma.drinks.findMany({ where, include: { categories:true}});
     res.json(drinks);
   } catch (error) {
