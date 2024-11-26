@@ -7,9 +7,11 @@ const app = express();
 
 app.use(express.json());
 app.use(cors({
-  methods:'GET,POST,DELETE,{PUT}',
-  credentials:true
-}))
+  origin: 'http://localhost:3000',
+  methods: 'GET,POST,DELETE,PUT',
+  credentials: true,
+}));
+
 
 routes(app);
 
