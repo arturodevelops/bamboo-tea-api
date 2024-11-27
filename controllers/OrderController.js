@@ -28,8 +28,9 @@ const createCheckoutSession = async (req, res) => {
   const order = await prisma.orders.create({
     data: {
       name: req.body.name,
+      phone: req.body.phone,
       checkout_session_id: session.id,
-      status: "pending", // Pending status for orders awaiting payment confirmation
+      status: "pending",
     },
   });
 
@@ -60,15 +61,28 @@ const confirmOrder = async (req, res) => {
         data: { status: "confirmed" },
       });
 
-      console.log("Order confirmed");
-      // Function to send a notification for a new order (implement here)
-    }
+      const order = await prisma.orders.findFirst({
+        where:{ checkout_session_id: req.query.session_id}
+      })
 
-    res.send({
-      status: session.status,
-      payment_status: session.payment_status,
-      customer_email: session.customer_details.email,
-    });
+      console.log("Order confirmed");
+
+      res.status(201).send({
+        status: session.status,
+        payment_status: session.payment_status,
+        customer_email: session.customer_details.email,
+        order_id : order.id,
+        order_name: order.name,
+        order_number: order.phone
+      });
+    }
+    else{
+      res.status(404).send({
+        status: session.status,
+        payment_status: session.payment_status,
+        customer_email: session.customer_details.email,
+      });
+    }
   } catch (error) {
     console.error("Error confirming order:", error);
     res.status(500).send({ error: "Failed to confirm order" });
