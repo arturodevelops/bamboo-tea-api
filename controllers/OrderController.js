@@ -62,10 +62,19 @@ const confirmOrder = async (req, res) => {
       });
 
       const order = await prisma.orders.findFirst({
-        where:{ checkout_session_id: req.query.session_id}
-      })
-
-      console.log("Order confirmed");
+        where: { checkout_session_id: req.query.session_id },
+        select: {
+          id: true,
+          phone: true,
+          name: true,
+          orders_drinks: {
+            include: {
+              drink: true // Include only drinks here
+            }
+          }
+        }
+      });
+      
 
       res.status(201).send({
         status: session.status,
@@ -73,7 +82,8 @@ const confirmOrder = async (req, res) => {
         customer_email: session.customer_details.email,
         order_id : order.id,
         order_name: order.name,
-        order_number: order.phone
+        order_number: order.phone,
+        orders_drinks: order.orders_drinks
       });
     }
     else{
