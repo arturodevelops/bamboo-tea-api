@@ -61,6 +61,21 @@ const confirmOrder = async (req, res) => {
         data: { status: "confirmed" },
       });
 
+      // const order = await prisma.orders.findFirst({
+      //   where: { checkout_session_id: req.query.session_id },
+      //   select: {
+      //     id: true,
+      //     phone: true,
+      //     name: true,
+      //     orders_drinks: {
+      //       include: {
+      //         drink: true // Include only drinks here
+      //       }
+      //     }
+      //   }
+      // });
+      
+
       const order = await prisma.orders.findFirst({
         where: { checkout_session_id: req.query.session_id },
         select: {
@@ -68,13 +83,29 @@ const confirmOrder = async (req, res) => {
           phone: true,
           name: true,
           orders_drinks: {
-            include: {
-              drink: true // Include only drinks here
+            select: {
+              drink: true, // Include only drinks here
+              amount:true
             }
           }
         }
       });
       
+      // Transform the result to include only `drinks`
+      const formattedOrder = {
+        id: order.id,
+        phone: order.phone,
+        name: order.name,
+        drinks: order.orders_drinks.map((od) => ({
+          id: od.drink.id,
+          name: od.drink.name,
+          description: od.drink.description,
+          price: od.drink.price,
+          amount: od.amount,
+          imageUrl: od.drink.imageUrl,
+          quantity: od.amount
+        })),
+      };
 
       res.status(201).send({
         status: session.status,
@@ -83,7 +114,7 @@ const confirmOrder = async (req, res) => {
         order_id : order.id,
         order_name: order.name,
         order_number: order.phone,
-        orders_drinks: order.orders_drinks
+        orders_drinks: formattedOrder.drinks
       });
     }
     else{
